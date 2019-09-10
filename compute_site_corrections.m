@@ -4,13 +4,15 @@ ADC_SAMPLING_FREQ = 1000;
 EFM_SAMPLE_RATE = 100;      % Hz, what we're decimating to
 CAMPBELL_SAMPLE_RATE = 4;   % Hz
 
-raw_data_dir = "/Volumes/Untitled/EFM before office move/RELAMPAGO Data/Campaign Data";
-campbell_data_dir = "/Volumes/Untitled/EFM before office move/RELAMPAGO Data/Campaign Data/Campbell Field Deployment";
-cal_dir = "/Volumes/Untitled/EFM before office move/Field Mill Post-Campaign Calibration/EFM calibration maps 6-17-2019";
-fig_dir = "/Volumes/Untitled/EFM before office move/EFM Level 1 Processing/Site Corrections";
+raw_data_dir = "/Volumes/EFM External/EFM before office move/RELAMPAGO Data/Campaign Data";
+campbell_data_dir = "/Volumes/EFM External/EFM before office move/RELAMPAGO Data/Campaign Data/Campbell Field Deployment";
+cal_dir = "/Volumes/EFM External/EFM before office move/Field Mill Post-Campaign Calibration/EFM calibration maps 6-17-2019";
+fig_dir = "/Volumes/EFM External/EFM before office move/EFM Level 1 Processing/Site Corrections";
 
 Mplate = 89.79;  % Campbell's mill-specific collector area correction.
-Csite =  0.105;   % Campbell's reported site correction. Probably valid, but will vary with setup height
+% Csite =  0.105;   % Campbell's reported site correction. Probably valid, but will vary with setup height
+Csite = 0.233;  % Taken from Austin's backyard test data, 7/18/2019
+C_offset = - 20; % ~ Taken from backyard tests. Probably drifts...
 
 EFMs = containers.Map;
 EFMs("Cordoba") = "EFM011";
@@ -20,7 +22,7 @@ EFMs("Villa-del-Rosario") = "EFM002";
 EFMs("Villa-Carlos-Paz") = "EFM008";
 
 lags = containers.Map;
-lags("Cordoba") = 0;
+lags("Cordoba") = 20;
 lags("Manfredi") = 1;
 lags("Pilar") = -2;
 lags("Villa-del-Rosario") = 0;
@@ -34,7 +36,7 @@ sites = ["Cordoba","Manfredi","Pilar", "Villa-del-Rosario","Villa-Carlos-Paz"];
 
 argentina_time_offset = hours(3); 
 phase_offset = 3;
-omit_polarity = true;
+% omit_polarity = true;
 
 gains = containers.Map;
 offsets = containers.Map;
@@ -59,7 +61,7 @@ for s=1:length(sites)
     timec = timec + argentina_time_offset;
     EfieldC = str2double(Cfile.E_field);
 
-    EfieldC = EfieldC*Csite*Mplate;  % Apply site correction to Campbell
+    EfieldC = EfieldC*Csite*Mplate + C_offset;  % Apply site correction to Campbell
     % Calibration map
     cal_file = fullfile(cal_dir,sprintf("%s_map_2019-06-17.mat",EFM));  
     disp(cal_file);
@@ -124,6 +126,19 @@ for s=1:length(sites)
     t_down = (0:(length(E_down)-1))/CAMPBELL_SAMPLE_RATE;
     tv_down = timeEFM(1) + seconds(t_down) - seconds(lag);
 
+    
+    if site_name=="Villa-Carlos-Paz"
+       % A band-aid: The VCP data has a strange DC offset halfway through.
+       % Possibly charge deposition on the sense plate plastic? Either way,
+       % let's see what the correction is like if we remove that offset
+       % manually / by eye.
+       
+       t1 = datetime(2018,10,24,18,57,17);
+       t2 = datetime(2018,10,24,18,58,55);
+       inds = find((tv_down >=t1) & (tv_down < t2));
+       E_down(inds)  = E_down(inds) - 100;
+       
+    end
     % ----- Least-squares fit for gain and offset -----
 
 
@@ -136,11 +151,11 @@ for s=1:length(sites)
     ib = ib(inan);
     
     if omit_polarity
-        A = abs(E_down(ia));
+        A = [abs(E_down(ia))];%, ones(length(ia),1)];
         B = abs(EfieldC(ib));
         fit = A\B;
         gain = fit(1);
-        offset = 0;
+        offset =  0; %fit(2)*sign(mean(EfieldC)); %0;
     else
         A = [E_down(ia), ones(length(ia),1)];
         B = EfieldC(ib);
@@ -240,7 +255,7 @@ end
         grid(axs(s),'on');
         yticks(axs(s),'auto');
         yticklabels(axs(s),'auto');
-        TextLocation(axs(s),sprintf('%s\nGain = %2.3f\nOffset = %2.2f',EFM,gain,offset),'Location','best');
+        TextLocation(axs(s),sprintf('%s\nGain = %2.3f\nOffset = %2.2f',EFM,gains(site_name),offsets(site_name)),'Location','best');
         
     end
 
