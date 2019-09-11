@@ -1,4 +1,4 @@
-function [fig, axs] = plot_time_range(start_time, stop_time, file_dir, sites)
+function [fig, axs] = plot_time_range(start_time, stop_time, file_dir, sites, netCDF)
     SAMPLE_RATE = 100; % Put this in the files please jfc
     
     % one file per hour
@@ -16,15 +16,26 @@ function [fig, axs] = plot_time_range(start_time, stop_time, file_dir, sites)
 
         for i=1:length(dates_to_do)
             dvec = datevec(dates_to_do(i));
-            name = sprintf("%02d.mat",dvec(4));
-            odir = fullfile(file_dir,site,sprintf('%d',dvec(1)),sprintf('%d',dvec(2)), sprintf('%d',dvec(3)));
+            if netCDF
+                % NetCDF files
+                name = sprintf("%s_%04d-%02d-%02dT%02d.nc",site,dvec(1), dvec(2), dvec(3), dvec(4));
+                odir = fullfile(file_dir,site,sprintf('%d',dvec(1)),sprintf('%d',dvec(2)), sprintf('%d',dvec(3))); 
+%                 sprintf(fullfile(odir,name))
+            else
+                % Matlab files
+                name = sprintf("%02d.mat",dvec(4));
+                odir = fullfile(file_dir,site,sprintf('%d',dvec(1)),sprintf('%d',dvec(2)), sprintf('%d',dvec(3)));
+            end
             if isfile(fullfile(odir,name))
-                data = load(fullfile(odir,name));
                 hr = hours(dates_to_do(i) - dates_to_do(1));
                 t_start = hr*60*60*SAMPLE_RATE + 1;
                 t_end = t_start + 60*60*SAMPLE_RATE - 1;
-
-                Evec(t_start:t_end) = data.E_field_calib;
+                if netCDF
+                    Evec(t_start:t_end) = ncread(fullfile(odir,name),"E_field");
+                else
+                    data = load(fullfile(odir,name));
+                    Evec(t_start:t_end) = data.E_field_calib;
+                end
             end
         end
         Edata(site) = Evec;

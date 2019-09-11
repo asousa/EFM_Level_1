@@ -1,6 +1,6 @@
 close all; clear all;
-data_dir = "/Volumes/EFM External/EFM before office move/RELAMPAGO Data/Level 1/Without Site Corrections v2";
-out_dir = "/Volumes/EFM External/EFM before office move/RELAMPAGO Data/Level 1/netCDF";
+data_dir = "/Volumes/lairdata/EFM/RELAMPAGO Data/Level 1/Without Site Corrections v2";
+out_dir = "/Volumes/lairdata/EFM/RELAMPAGO Data/Level 1/netCDF";
 
 sites = ["Cordoba","Manfredi","Pilar", "Villa-del-Rosario","Villa-Carlos-Paz"];
 % sites = ["Cordoba"];
@@ -101,6 +101,7 @@ for s=1:length(sites)
             filetime_iso = sprintf("%04d-%02d-%02dT%02d:%02d:%02d+000",dvec(1),dvec(2),dvec(3),dvec(4),dvec(5),dvec(6));
             ncwriteatt(outfile,'/','creation_date',datestr(now));
             ncwriteatt(outfile,'/','calibration_file',data.cal_filename);
+            ncwriteatt(outfile,'/','site_name',site);
             ncwriteatt(outfile,'E_field','SAMPLE_RATE',data.SAMPLE_RATE);
             ncwriteatt(outfile,'E_field','start_time',filetime_iso);
             ncwriteatt(outfile,'E_field','E_saturation',clipping_val);
