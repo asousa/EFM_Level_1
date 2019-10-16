@@ -31,7 +31,8 @@ function E_field = process_hilbert(data, ADC_SAMPLING_FREQ, OUTPUT_SAMPLE_RATE, 
     phase = 2.*phase - 1;                                 % normalize to plus/minus 1
     phase = circshift(phase,phase_offset);                % Roll the phase left or right, if needed
     phase = bandpass(phase, [99,101], ADC_SAMPLING_FREQ); % Bandpass around the carrier frequency +- 1 Hz
-    pol = angle(hilbert(sig)) - angle(hilbert(phase));    % Compute the relative phase between the signal and the encoder
+    pol = angle(hilbert(sig)) - angle(hilbert(phase));  
+    % Compute the relative phase between the signal and the encoder
     pol = abs(mod(pol,2*pi) - pi);                        % Wrap any angles, scale down by pi
     pol = 2*(pol>pi/2) - 1;                               % Threshold it at pi/2
 

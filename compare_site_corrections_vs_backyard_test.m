@@ -47,11 +47,11 @@ site_labels = ["Cordoba","Manfredi","Pilar","VCP","VDR"];
 
     
 set(groot,'defaultfigurecolor',[1 1 1])
-set(groot,'defaultAxesFontSize',16)
-set(groot,'defaultTextFontSize',18)
+set(groot,'defaultAxesFontSize',10)
+set(groot,'defaultTextFontSize',10)
 set(groot,'defaultAxesFontWeight','bold');
 set(groot,'defaultTextFontWeight','bold');
-set(groot,'defaultAxesLineWidth',2);
+set(groot,'defaultAxesLineWidth',1);
 set(groot,'defaultUicontrolFontName','Arial');
 set(groot,'defaultUitableFontName','Arial');
 set(groot,'defaultAxesFontName','Arial');
@@ -59,7 +59,8 @@ set(groot,'defaultTextFontName','Arial');
 set(groot,'defaultUipanelFontName','Arial');
 
 
-    fig = figure('units','inch','position',[0,0,10,8]);
+%     fig = figure('units','inch','position',[0,0,10,8]);
+fig = figure('units','inch','position',[0,0,6,4]);
 % fig = figure('units','pixels','position',[0 0 1280 720]);
 axs = tight_subplot(2,1,0.03, 0.8/10, 0.8/8);
 hold(axs(1),'on');
@@ -75,7 +76,7 @@ for s=1:length(sites)
    gup = gain*(1 + rel_err);
    gdn = gain*(1 - rel_err);
    w = 0.2;
-   plot(axs(1),[s - w,s + w],[gain, gain],'k','LineWidth',2);
+   plot(axs(1),[s - w,s + w],[gain, gain],'k','LineWidth',1);
    hold on;
    h1=fill(axs(1),[s-w,s-w, s+w, s+w],[gdn,gup,gup,gdn],'red','FaceAlpha',0.1);
   plot(axs(1),s,gain,'ko');
@@ -85,9 +86,9 @@ for s=1:length(sites)
        gup = gain*(1 + rel_err);
        gdn = gain*(1 - rel_err);
 
-       plot(axs(1),[s - w,s + w],[gain, gain],'k','LineWidth',2);
+       plot(axs(1),[s - w,s + w],[gain, gain],'k','LineWidth',1);
        plot(axs(1),s,gain,'ko');
-       h2=fill(axs(1),[s-w,s-w, s+w, s+w],[gdn,gup,gup,gdn],'blue','FaceAlpha',0.1);
+       h2=fill(axs(1),[s-w,s-w, s+w, s+w],[gdn,gup,gup,gdn],'blue','FaceAlpha',0.1,'LineWidth',0.5);
        grid(axs(1),'on');
    end
    
@@ -95,14 +96,14 @@ for s=1:length(sites)
    xticklabels(axs(1),[]);
 %       set(axs(1),'yscale','log');
 
-   ylabel(axs(1),'Gain');
+   ylabel(axs(1),'C_{site}');
    yticks(axs(1),'auto');
    yticklabels(axs(1),'auto');
 
 end
 
-legend(axs(1),[h1,h2],'Argentina','Colorado');
-text(axs(1),3,0.01, "Boxes denote ± 20%",'FontSize',14);
+legend(axs(1),[h1,h2],'Argentina, 10-2018','Colorado, 5-2019');
+text(axs(1),3,0.03, "Boxes denote ± 20%",'FontSize',10);
 
 
 
@@ -113,21 +114,21 @@ for s=1:length(sites)
    oup = offset*(1 + rel_err);
    odn = offset*(1 - rel_err);
    w = 0.2;
-   plot(axs(2),[s - w,s + w],[offset, offset],'k','LineWidth',2);
+   plot(axs(2),[s - w,s + w],[offset, offset],'k','LineWidth',1);
    plot(axs(2),s,offset,'ko');
 
    hold on;
-   h1=fill(axs(2),[s-w,s-w, s+w, s+w],[odn,oup,oup,odn],'red','FaceAlpha',0.1,'LineWidth',1);
+   h1=fill(axs(2),[s-w,s-w, s+w, s+w],[odn,oup,oup,odn],'red','FaceAlpha',0.1,'LineWidth',0.5);
    if backyard_offsets.isKey(EFM)
        offset = backyard_offsets(EFM)*Csite;
        oup = offset*(1 + rel_err);
        odn = offset*(1 - rel_err);
 
-       plot(axs(2),[s - w,s + w],[offset, offset],'k','LineWidth',2);
+       plot(axs(2),[s - w,s + w],[offset, offset],'k','LineWidth',1);
        plot(axs(2),s,offset,'ko');
 
        hold on;
-       h2=fill(axs(2),[s-w,s-w, s+w, s+w],[odn,oup,oup,odn],'blue','FaceAlpha',0.1,'LineWidth',1);
+       h2=fill(axs(2),[s-w,s-w, s+w, s+w],[odn,oup,oup,odn],'blue','FaceAlpha',0.1,'LineWidth',0.5);
        grid(axs(2),'on');
    end
    
@@ -140,11 +141,25 @@ for s=1:length(sites)
 
 end
 
-legend(axs(2),[h1,h2],'Argentina','Colorado');
+% legend(axs(2),[h1,h2],'Argentina','Colorado');
+legend(axs(2),[h1,h2],'Argentina, 10-2018','Colorado, 5-2019');
 
 linkaxes(axs,'x');
 
-sgtitle("Site Correction Comparison, July 2019")
-saveas(fig,"Site correction comparison July 2019.png");
+% sgtitle("Site Correction Comparison, July 2019")
+sgtitle("Site Correction Comparison")
+% saveas(fig,"Site correction comparison July 2019.png");
+% saveas(fig,"csite_correction.pdf");
 
+
+fig.PaperPositionMode = 'auto';
+% fig.PaperUnits ='inches';
+% fig_width = 5 ;fig_height = 3.25;
+% fig.PaperPosition= [0 0 fig_width fig_height]; %
+
+% fig.PaperPositionMode = 'auto';
+fig_pos = fig.PaperPosition;
+fig.PaperSize = [fig_pos(3) fig_pos(4)];
+
+print(fig,'csite_correction.pdf','-dpdf')
 

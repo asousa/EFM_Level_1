@@ -38,10 +38,28 @@ for s=1:length(sites)
 end
 
 %%
-figure(1);
+sites =      ["Cordoba","Manfredi","Pilar","Villa-Carlos-Paz", "Villa-del-Rosario"];
+site_titles = ["Cordoba","Manfredi","Pilar","VCP", "VDR"];
+
+close all;
+set(groot,'defaultfigurecolor',[1 1 1])
+set(groot,'defaultAxesFontSize',10)
+set(groot,'defaultTextFontSize',10)
+set(groot,'defaultAxesFontWeight','bold');
+set(groot,'defaultTextFontWeight','bold');
+set(groot,'defaultAxesLineWidth',1);
+set(groot,'defaultUicontrolFontName','Arial');
+set(groot,'defaultUitableFontName','Arial');
+set(groot,'defaultAxesFontName','Arial');
+set(groot,'defaultTextFontName','Arial');
+set(groot,'defaultUipanelFontName','Arial');
+fig = figure(1);
+
+
 axs = [];
 for s=1:length(sites)
     site = sites(s);
+    site_title = site_titles(s)
     ax = subplot(length(sites),1,s);
     axs = [axs, ax];
     errs = error_hists(site);
@@ -49,12 +67,25 @@ for s=1:length(sites)
     histogram(ax,errs, 24);%,'edgecolor','none');
 %     xlim(ax,[0,100]);
 %     set(ax,'yscale','log');
-    ylabel([site,'counts']);
+%     ylabel([site_title,'counts']);
+    ylabel(ax,site_title);
+    yticks(ax,[]);
+%     title(ax,site);
 end
 
 for x=1:(length(axs)-1)
     set(axs(x),'xticklabels',[]);
 end
-xlabel(axs(end),'Max error (seconds)');
-sgtitle(['Timing error histograms',sprintf("%s -- %s",start_time, stop_time)]);
+xlabel(axs(end),'Maximum timing error [sec]');
+sgtitle(['Timing error histograms']); %,sprintf("%s -- %s",start_time, stop_time)]);
 linkaxes(axs,'x');
+
+fig.PaperUnits ='inches';
+fig_width = 4.5 ;fig_height = 4.5;
+fig.PaperPosition= [0 0 fig_width fig_height]; %
+  
+% f.PaperPositionMode = 'auto';
+fig_pos = fig.PaperPosition;
+fig.PaperSize = [fig_pos(3) fig_pos(4)];
+
+saveas(fig, 'timing_error_histograms.pdf');
